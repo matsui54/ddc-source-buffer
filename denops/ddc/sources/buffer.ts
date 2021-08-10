@@ -25,10 +25,9 @@ type bufCache = {
 export class Source extends BaseSource {
   private buffers: bufCache[] = [];
   private limit = 1e6;
-  private tabBufnrs: number[] = [];
-  events = ['BufReadPost', 'BufWritePost', 'InsertLeave']
+  events = ["BufReadPost", "BufWritePost", "InsertLeave"];
 
-  private async makeCache(denops: Denops, context: Context): Promise<void> {
+  private async makeCache(denops: Denops, filetype: string): Promise<void> {
     const endLine = await fn.line(denops, "$") as number;
     const size = (await fn.line2byte(
       denops,
@@ -41,11 +40,20 @@ export class Source extends BaseSource {
 
     this.buffers[bufnr] = {
       bufnr: bufnr,
-      filetype: context.filetype,
+      filetype: filetype,
       candidates: allWords(
         await fn.getline(denops, 1, endLine),
       ).map((word) => ({ word })),
     };
+  }
+
+  async onInit(
+    denops: Denops,
+  ): Promise<void> {
+    this.makeCache(
+      denops,
+      await fn.getbufvar(denops, "%", "&filetype") as string,
+    );
   }
 
   async onEvent(
@@ -55,25 +63,26 @@ export class Source extends BaseSource {
     _options: SourceOptions,
     _params: Record<string, unknown>,
   ): Promise<void> {
-    await this.makeCache(denops, context);
+    await this.makeCache(denops, context.filetype);
 
-    this.tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
+    const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     this.buffers = this.buffers.filter(async (buffer) =>
-      buffer.bufnr in this.tabBufnrs ||
+      buffer.bufnr in tabBufnrs ||
       (await fn.buflisted(denops, buffer.bufnr))
     );
   }
 
   async gatherCandidates(
-    _denops: Denops,
+    denops: Denops,
     context: Context,
     _ddcOptions: DdcOptions,
     _options: SourceOptions,
     params: Record<string, unknown>,
   ): Promise<Candidate[]> {
+    const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     let buffers = this.buffers.filter((buf) =>
       !params.requireSameFiletype || (buf.filetype == context.filetype) ||
-      buf.bufnr in this.tabBufnrs
+      buf.bufnr in tabBufnrs
     );
     return buffers.map((buf) => buf.candidates).flatMap((candidate) =>
       candidate
