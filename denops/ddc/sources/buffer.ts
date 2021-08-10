@@ -72,7 +72,7 @@ export class Source extends BaseSource {
     params: Record<string, unknown>,
   ): Promise<Candidate[]> {
     let buffers = this.buffers.filter((buf) =>
-      !params.requireSameFiletype || (buf.filetype != context.filetype) ||
+      !params.requireSameFiletype || (buf.filetype == context.filetype) ||
       buf.bufnr in this.tabBufnrs
     );
     return buffers.map((buf) => buf.candidates).flatMap((candidate) =>
