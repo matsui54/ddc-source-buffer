@@ -12,6 +12,10 @@ function allWords(lines: string[]): string[] {
     .map((match) => match[0]).filter((e, i, self) => self.indexOf(e) === i);
 }
 
+type Params = {
+  requireSameFiletype: boolean;
+};
+
 type bufCache = {
   bufnr: number;
   filetype: string;
@@ -68,11 +72,18 @@ export class Source extends BaseSource {
     params: Record<string, unknown>,
   ): Promise<Candidate[]> {
     let buffers = this.buffers.filter((buf) =>
-      !params.require_same_filetype || (buf.filetype != context.filetype) ||
+      !params.requireSameFiletype || (buf.filetype != context.filetype) ||
       buf.bufnr in this.tabBufnrs
     );
     return buffers.map((buf) => buf.candidates).flatMap((candidate) =>
       candidate
     );
+  }
+
+  params(): Record<string, unknown> {
+    const params: Params = {
+      requireSameFiletype: true,
+    };
+    return params as unknown as Record<string, unknown>;
   }
 }
