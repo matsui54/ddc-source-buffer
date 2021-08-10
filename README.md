@@ -14,7 +14,9 @@ https://github.com/Shougo/ddc.vim
 ## Configuration
 ### params
 - requireSameFiletype: If it is false, keywords from all listed buffers are collected.
-If true, buffers which has the same filetype as the current buffer are used. (default true)
+If true, buffers which has the same filetype as the current buffer are used. (default: v:true)
+- limitBytes: If the byte size of buffer exceeds this number, keywords from it are not collected.
+(default: 1000000)
 
 ### example
 ```vim

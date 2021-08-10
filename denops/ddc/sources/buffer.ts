@@ -14,6 +14,7 @@ function allWords(lines: string[]): string[] {
 
 type Params = {
   requireSameFiletype: boolean;
+  limitBytes: number;
 };
 
 type bufCache = {
@@ -24,16 +25,19 @@ type bufCache = {
 
 export class Source extends BaseSource {
   private buffers: bufCache[] = [];
-  private limit = 1e6;
   events = ["BufReadPost", "BufWritePost", "InsertLeave"];
 
-  private async makeCache(denops: Denops, filetype: string): Promise<void> {
+  private async makeCache(
+    denops: Denops,
+    filetype: string,
+    limit: number,
+  ): Promise<void> {
     const endLine = await fn.line(denops, "$") as number;
     const size = (await fn.line2byte(
       denops,
       endLine + 1,
     ) as number) - 1;
-    if (size > this.limit) {
+    if (size > limit) {
       return;
     }
     const bufnr = await fn.bufnr(denops);
@@ -53,6 +57,7 @@ export class Source extends BaseSource {
     this.makeCache(
       denops,
       await fn.getbufvar(denops, "%", "&filetype") as string,
+      1e6,
     );
   }
 
@@ -61,9 +66,9 @@ export class Source extends BaseSource {
     context: Context,
     _ddcOptions: DdcOptions,
     _options: SourceOptions,
-    _params: Record<string, unknown>,
+    params: Record<string, unknown>,
   ): Promise<void> {
-    await this.makeCache(denops, context.filetype);
+    await this.makeCache(denops, context.filetype, params.limitBytes as number);
 
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     this.buffers = this.buffers.filter(async (buffer) =>
@@ -92,6 +97,7 @@ export class Source extends BaseSource {
   params(): Record<string, unknown> {
     const params: Params = {
       requireSameFiletype: true,
+      limitBytes: 1e6,
     };
     return params as unknown as Record<string, unknown>;
   }
