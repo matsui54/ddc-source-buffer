@@ -4,8 +4,8 @@ import {
   Context,
   DdcOptions,
   SourceOptions,
-} from "https://deno.land/x/ddc_vim@v0.0.11/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddc_vim@v0.0.11/deps.ts";
+} from "https://deno.land/x/ddc_vim@v0.0.13/types.ts";
+import { Denops, fn } from "https://deno.land/x/ddc_vim@v0.0.13/deps.ts";
 
 function allWords(lines: string[]): string[] {
   return lines.flatMap((line) => [...line.matchAll(/[a-zA-Z0-9_]+/g)])
@@ -22,6 +22,7 @@ export class Source extends BaseSource {
   private buffers: bufCache[] = [];
   private limit = 1e6;
   private tabBufnrs: number[] = [];
+  events = ['BufReadPost', 'BufWritePost', 'InsertLeave']
 
   private async makeCache(denops: Denops, context: Context): Promise<void> {
     const endLine = await fn.line(denops, "$") as number;
@@ -57,7 +58,6 @@ export class Source extends BaseSource {
       buffer.bufnr in this.tabBufnrs ||
       (await fn.buflisted(denops, buffer.bufnr))
     );
-    // this.buffers = newBufnrs.map((bufnr) => this.buffers
   }
 
   async gatherCandidates(
@@ -71,7 +71,6 @@ export class Source extends BaseSource {
       !params.require_same_filetype || (buf.filetype != context.filetype) ||
       buf.bufnr in this.tabBufnrs
     );
-    console.log(buffers);
     return buffers.map((buf) => buf.candidates).flatMap((candidate) =>
       candidate
     );
