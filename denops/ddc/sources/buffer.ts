@@ -15,6 +15,7 @@ function allWords(lines: string[]): string[] {
 type Params = {
   requireSameFiletype: boolean;
   limitBytes: number;
+  fromAltBuf: boolean;
 };
 
 type bufCache = {
@@ -85,9 +86,11 @@ export class Source extends BaseSource {
     params: Record<string, unknown>,
   ): Promise<Candidate[]> {
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
-    let buffers = this.buffers.filter((buf) =>
+    const altbuf = await fn.bufnr(denops, "#");
+    let buffers = this.buffers.filter((buf) => 
       !params.requireSameFiletype || (buf.filetype == context.filetype) ||
-      buf.bufnr in tabBufnrs
+      tabBufnrs.includes(buf.bufnr) ||
+      (params.fromAltBuf && (altbuf == buf.bufnr))
     );
     return buffers.map((buf) => buf.candidates).flatMap((candidate) =>
       candidate
@@ -98,6 +101,7 @@ export class Source extends BaseSource {
     const params: Params = {
       requireSameFiletype: true,
       limitBytes: 1e6,
+      fromAltBuf: false,
     };
     return params as unknown as Record<string, unknown>;
   }
