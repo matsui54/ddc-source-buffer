@@ -3,10 +3,13 @@ import {
   Candidate,
   Context,
   DdcOptions,
+  Denops,
+  fn,
+  gather,
+  imap,
+  range,
   SourceOptions,
-} from "https://deno.land/x/ddc_vim@v0.1.0/types.ts";
-import { Denops, fn, gather } from "https://deno.land/x/ddc_vim@v0.1.0/deps.ts";
-import { imap, range } from "https://deno.land/x/itertools@v0.1.3/mod.ts";
+} from "./deps.ts";
 
 export function splitPages(
   minLines: number,
@@ -41,7 +44,10 @@ export class Source extends BaseSource {
   private pageSize = 500;
   events = ["BufReadPost", "BufWritePost", "InsertLeave"];
 
-  private async gatherWords(denops: Denops, endLine: number): Promise<Candidate[]> {
+  private async gatherWords(
+    denops: Denops,
+    endLine: number,
+  ): Promise<Candidate[]> {
     const ps = await gather(denops, async (denops) => {
       for (const [s, e] of splitPages(1, endLine, this.pageSize)) {
         await fn.getline(denops, s, e);
@@ -107,7 +113,7 @@ export class Source extends BaseSource {
   ): Promise<Candidate[]> {
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     const altbuf = await fn.bufnr(denops, "#");
-    let buffers = this.buffers.filter((buf) => 
+    let buffers = this.buffers.filter((buf) =>
       !params.requireSameFiletype || (buf.filetype == context.filetype) ||
       tabBufnrs.includes(buf.bufnr) ||
       (params.fromAltBuf && (altbuf == buf.bufnr))
