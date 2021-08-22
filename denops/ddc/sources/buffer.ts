@@ -90,12 +90,12 @@ export class Source extends BaseSource {
   async onEvent(args: {
     denops: Denops;
     context: Context;
-    params: Record<string, unknown>;
+    sourceParams: Record<string, unknown>;
   }): Promise<void> {
     await this.makeCache(
       args.denops,
       args.context.filetype,
-      args.params.limitBytes as number,
+      args.sourceParams.limitBytes as number,
     );
 
     const tabBufnrs = (await args.denops.call("tabpagebuflist") as number[]);
