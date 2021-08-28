@@ -27,7 +27,7 @@ call ddc#custom#patch_global('sourceOptions', {
     \ 'buffer': {'mark': 'B'},
     \ })
 
-call ddc#custom#patch_global('filterParams', {
+call ddc#custom#patch_global('sourceParams', {
     \ 'buffer': {'requireSameFiletype': v:false},
     \ })
 ```
