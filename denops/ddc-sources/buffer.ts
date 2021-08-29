@@ -1,14 +1,17 @@
 import {
   BaseSource,
   Candidate,
-  Context,
   DdcEvent,
-  Denops,
-  fn,
-  gather,
-  imap,
-  range,
-} from "./deps.ts";
+} from "https://deno.land/x/ddc_vim@v0.4.1/types.ts#^";
+import {
+  GatherCandidatesArguments,
+  OnEventArguments,
+  OnInitArguments,
+} from "https://deno.land/x/ddc_vim@v0.4.1/base/source.ts#^";
+import { imap, range } from "https://deno.land/x/itertools@v0.1.3/mod.ts#^";
+import { gather } from "https://deno.land/x/denops_std@v1.8.0/batch/mod.ts#^";
+import * as fn from "https://deno.land/x/denops_std@v1.8.0/function/mod.ts#^";
+import { Denops } from "https://deno.land/x/denops_std@v1.8.0/mod.ts#^";
 
 export function splitPages(
   minLines: number,
@@ -79,45 +82,43 @@ export class Source extends BaseSource {
     };
   }
 
-  async onInit(args: {
-    denops: Denops;
-  }): Promise<void> {
+  async onInit({ denops }: OnInitArguments): Promise<void> {
     this.makeCache(
-      args.denops,
-      await fn.getbufvar(args.denops, "%", "&filetype") as string,
+      denops,
+      await fn.getbufvar(denops, "%", "&filetype") as string,
       1e6,
     );
   }
 
-  async onEvent(args: {
-    denops: Denops;
-    context: Context;
-    sourceParams: Record<string, unknown>;
-  }): Promise<void> {
+  async onEvent({
+    denops,
+    context,
+    sourceParams,
+  }: OnEventArguments): Promise<void> {
     await this.makeCache(
-      args.denops,
-      args.context.filetype,
-      args.sourceParams.limitBytes as number,
+      denops,
+      context.filetype,
+      sourceParams.limitBytes as number,
     );
 
-    const tabBufnrs = (await args.denops.call("tabpagebuflist") as number[]);
+    const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     this.buffers = this.buffers.filter(async (buffer) =>
       buffer.bufnr in tabBufnrs ||
-      (await fn.buflisted(args.denops, buffer.bufnr))
+      (await fn.buflisted(denops, buffer.bufnr))
     );
   }
 
-  async gatherCandidates(args: {
-    denops: Denops;
-    context: Context;
-    sourceParams: Record<string, unknown>;
-  }): Promise<Candidate[]> {
-    const p = args.sourceParams as unknown as Params;
-    const tabBufnrs = (await args.denops.call("tabpagebuflist") as number[]);
-    const altbuf = await fn.bufnr(args.denops, "#");
+  async gatherCandidates({
+    denops,
+    context,
+    sourceParams,
+  }: GatherCandidatesArguments): Promise<Candidate[]> {
+    const p = sourceParams as unknown as Params;
+    const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
+    const altbuf = await fn.bufnr(denops, "#");
     let buffers = this.buffers.filter((buf) =>
       !p.requireSameFiletype ||
-      (buf.filetype == args.context.filetype) ||
+      (buf.filetype == context.filetype) ||
       tabBufnrs.includes(buf.bufnr) ||
       (p.fromAltBuf && (altbuf == buf.bufnr))
     );

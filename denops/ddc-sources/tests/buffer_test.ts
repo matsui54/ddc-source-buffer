@@ -1,5 +1,7 @@
-import { assertEquals } from "./deps.ts";
-import { allWords, splitPages } from "./buffer.ts";
+import {
+  assertEquals
+} from "https://deno.land/std@0.106.0/testing/asserts.ts#^";
+import { allWords, splitPages } from "../buffer.ts";
 
 Deno.test("pages", () => {
   assertEquals(Array.from(splitPages(1, 600, 500)), [[1, 500], [501, 1000]]);
