@@ -44,7 +44,7 @@ EXAMPLES						*ddc-buffer-examples*
 ==============================================================================
 PARAMS							*ddc-buffer-params*
 
-				    		*ddc-buffer-param-maxSize*
+					  *ddc-buffer-param-requireSameFiletype*
 requireSameFiletype	(boolean)
 		If it is false, keywords from all listed buffers are
 		collected. If true, buffers which has the same filetype as the
@@ -53,6 +53,7 @@ requireSameFiletype	(boolean)
 		Default: v:true
 
 
+						   *ddc-buffer-param-limitBytes*
 limitBytes		(number)
 		If the byte size of buffer exceeds this number, keywords from
 		it are not collected.
@@ -60,6 +61,7 @@ limitBytes		(number)
 		Default: 1000000
 
 
+						   *ddc-buffer-param-fromAltBuf*
 fromAltBuf		(boolean)
 		If it is true, keywords from alternate buffer are collected. 
 
