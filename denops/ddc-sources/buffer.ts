@@ -2,16 +2,16 @@ import {
   BaseSource,
   Candidate,
   DdcEvent,
-} from "https://deno.land/x/ddc_vim@v0.4.1/types.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.5.0/types.ts#^";
 import {
   GatherCandidatesArguments,
   OnEventArguments,
   OnInitArguments,
-} from "https://deno.land/x/ddc_vim@v0.4.1/base/source.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.5.0/base/source.ts#^";
 import { imap, range } from "https://deno.land/x/itertools@v0.1.3/mod.ts#^";
-import { gather } from "https://deno.land/x/denops_std@v1.8.0/batch/mod.ts#^";
-import * as fn from "https://deno.land/x/denops_std@v1.8.0/function/mod.ts#^";
-import { Denops } from "https://deno.land/x/denops_std@v1.8.0/mod.ts#^";
+import { gather } from "https://deno.land/x/denops_std@v1.8.1/batch/mod.ts#^";
+import * as fn from "https://deno.land/x/denops_std@v1.8.1/function/mod.ts#^";
+import { Denops } from "https://deno.land/x/denops_std@v1.8.1/mod.ts#^";
 
 export function splitPages(
   minLines: number,
@@ -52,7 +52,7 @@ export class Source extends BaseSource {
     denops: Denops,
     endLine: number,
   ): Promise<Candidate[]> {
-    const ps = await gather(denops, async (denops) => {
+    const ps = await gather(denops, async (denops: Denops) => {
       for (const [s, e] of splitPages(1, endLine, this.pageSize)) {
         await fn.getline(denops, s, e);
       }
@@ -82,11 +82,11 @@ export class Source extends BaseSource {
     };
   }
 
-  async onInit({ denops }: OnInitArguments): Promise<void> {
+  async onInit({ denops, sourceParams }: OnInitArguments): Promise<void> {
     this.makeCache(
       denops,
       await fn.getbufvar(denops, "%", "&filetype") as string,
-      1e6,
+      sourceParams.limitBytes as number,
     );
   }
 
