@@ -160,12 +160,11 @@ export class Source extends BaseSource {
 
     await this.checkCache(denops, tabBufnrs, p.limitBytes);
 
-    return Object.keys(this.buffers).map((bufnr) => this.buffers[bufnr]).filter(
-      (buf) =>
-        !p.requireSameFiletype ||
-        (buf.filetype == context.filetype) ||
-        tabBufnrs.includes(buf.bufnr) ||
-        (p.fromAltBuf && (altbuf == buf.bufnr)),
+    return Object.values(this.buffers).filter((buffer) =>
+      !p.requireSameFiletype ||
+      (buffer.filetype == context.filetype) ||
+      tabBufnrs.includes(buffer.bufnr) ||
+      (p.fromAltBuf && (altbuf == buffer.bufnr))
     ).map((buf) => buf.candidates).flatMap((candidate) => candidate);
   }
 
