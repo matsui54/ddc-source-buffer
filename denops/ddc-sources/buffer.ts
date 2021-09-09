@@ -11,7 +11,7 @@ import {
 import * as fn from "https://deno.land/x/denops_std@v1.9.0/function/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v1.9.0/mod.ts#^";
 
-export async function getFsize(fname: string) {
+export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
   try {
     file = await Deno.stat(fname);
@@ -19,7 +19,8 @@ export async function getFsize(fname: string) {
     if (e instanceof Deno.errors.NotFound) {
       return -1;
     }
-    throw e;
+    console.error(e);
+    return -1;
   }
   return file.size;
 }
@@ -60,7 +61,7 @@ export class Source extends BaseSource {
       .map((word) => ({ word }));
   }
 
-  private async makeCache(
+  private async makeCurrentBufCache(
     denops: Denops,
     filetype: string,
     limit: number,
@@ -87,7 +88,7 @@ export class Source extends BaseSource {
     bufnr: number,
     limit: number,
   ): Promise<void> {
-    const size = await getFsize(await fn.bufname(denops, bufnr));
+    const size = await getFileSize(await fn.bufname(denops, bufnr));
     if (size < 0 || size > limit) return;
 
     this.buffers[bufnr.toString()] = {
@@ -115,7 +116,7 @@ export class Source extends BaseSource {
       await fn.tabpagebuflist(denops) as number[],
       sourceParams.limitBytes as number,
     );
-    await this.makeCache(
+    await this.makeCurrentBufCache(
       denops,
       await fn.getbufvar(denops, "%", "&filetype") as string,
       sourceParams.limitBytes as number,
@@ -132,7 +133,7 @@ export class Source extends BaseSource {
     ) {
       return;
     }
-    await this.makeCache(
+    await this.makeCurrentBufCache(
       denops,
       context.filetype,
       sourceParams.limitBytes as number,
@@ -140,7 +141,9 @@ export class Source extends BaseSource {
 
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     for (const bufnr of Object.keys(this.buffers)) {
-      if (!(bufnr in tabBufnrs) && !(await fn.buflisted(denops, Number(bufnr)))) {
+      if (
+        !(bufnr in tabBufnrs) && !(await fn.buflisted(denops, Number(bufnr)))
+      ) {
         delete this.buffers[bufnr];
       }
     }
