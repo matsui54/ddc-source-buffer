@@ -2,16 +2,16 @@ import {
   BaseSource,
   Candidate,
   DdcEvent,
-} from "https://deno.land/x/ddc_vim@v0.5.0/types.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.5.2/types.ts#^";
 import {
   GatherCandidatesArguments,
   OnEventArguments,
   OnInitArguments,
-} from "https://deno.land/x/ddc_vim@v0.5.0/base/source.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.5.2/base/source.ts#^";
 import { imap, range } from "https://deno.land/x/itertools@v0.1.3/mod.ts#^";
-import { gather } from "https://deno.land/x/denops_std@v1.8.1/batch/mod.ts#^";
-import * as fn from "https://deno.land/x/denops_std@v1.8.1/function/mod.ts#^";
-import { Denops } from "https://deno.land/x/denops_std@v1.8.1/mod.ts#^";
+import { gather } from "https://deno.land/x/denops_std@v1.9.0/batch/mod.ts#^";
+import * as fn from "https://deno.land/x/denops_std@v1.9.0/function/mod.ts#^";
+import { Denops } from "https://deno.land/x/denops_std@v1.9.0/mod.ts#^";
 
 export function splitPages(
   minLines: number,
