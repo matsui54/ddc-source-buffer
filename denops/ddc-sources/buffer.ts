@@ -8,20 +8,20 @@ import {
   OnEventArguments,
   OnInitArguments,
 } from "https://deno.land/x/ddc_vim@v0.5.2/base/source.ts#^";
-import { imap, range } from "https://deno.land/x/itertools@v0.1.3/mod.ts#^";
-import { gather } from "https://deno.land/x/denops_std@v1.9.0/batch/mod.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v1.9.0/function/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v1.9.0/mod.ts#^";
 
-export function splitPages(
-  minLines: number,
-  maxLines: number,
-  size: number,
-): Iterable<[number, number]> {
-  return imap(
-    range(minLines, /* < */ maxLines + 1, size),
-    (lnum: number) => [lnum, /* <= */ lnum + size - 1],
-  );
+export async function getFsize(fname: string) {
+  let file: Deno.FileInfo;
+  try {
+    file = await Deno.stat(fname);
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      return -1;
+    }
+    throw e;
+  }
+  return file.size;
 }
 
 export function allWords(lines: string[]): string[] {
@@ -44,20 +44,20 @@ type bufCache = {
 };
 
 export class Source extends BaseSource {
-  private buffers: bufCache[] = [];
-  private pageSize = 500;
-  events = ["BufReadPost", "BufWritePost", "InsertLeave"] as DdcEvent[];
+  private buffers: { [bufnr: string]: bufCache } = {};
+  events = [
+    "BufReadPost",
+    "BufWritePost",
+    "InsertLeave",
+    "BufEnter",
+  ] as DdcEvent[];
 
   private async gatherWords(
     denops: Denops,
-    endLine: number,
+    bufnr: number,
   ): Promise<Candidate[]> {
-    const ps = await gather(denops, async (denops: Denops) => {
-      for (const [s, e] of splitPages(1, endLine, this.pageSize)) {
-        await fn.getline(denops, s, e);
-      }
-    }) as string[][];
-    return allWords(ps.flatMap((p) => p)).map((word) => ({ word }));
+    return allWords(await fn.getbufline(denops, bufnr, 1, "$"))
+      .map((word) => ({ word }));
   }
 
   private async makeCache(
@@ -75,15 +75,47 @@ export class Source extends BaseSource {
     }
     const bufnr = await fn.bufnr(denops);
 
-    this.buffers[bufnr] = {
+    this.buffers[bufnr.toString()] = {
       bufnr: bufnr,
       filetype: filetype,
-      candidates: await this.gatherWords(denops, endLine),
+      candidates: await this.gatherWords(denops, bufnr),
     };
   }
 
+  private async makeFileBufCache(
+    denops: Denops,
+    bufnr: number,
+    limit: number,
+  ): Promise<void> {
+    const size = await getFsize(await fn.bufname(denops, bufnr));
+    if (size < 0 || size > limit) return;
+
+    this.buffers[bufnr.toString()] = {
+      bufnr: bufnr,
+      filetype: await fn.getbufvar(denops, bufnr, "&filetype") as string,
+      candidates: await this.gatherWords(denops, bufnr),
+    };
+  }
+
+  private async checkCache(
+    denops: Denops,
+    tabBufnrs: number[],
+    limit: number,
+  ): Promise<void> {
+    for (const bufnr of tabBufnrs) {
+      if (!(bufnr in this.buffers)) {
+        this.makeFileBufCache(denops, bufnr, limit);
+      }
+    }
+  }
+
   async onInit({ denops, sourceParams }: OnInitArguments): Promise<void> {
-    this.makeCache(
+    await this.checkCache(
+      denops,
+      await fn.tabpagebuflist(denops) as number[],
+      sourceParams.limitBytes as number,
+    );
+    await this.makeCache(
       denops,
       await fn.getbufvar(denops, "%", "&filetype") as string,
       sourceParams.limitBytes as number,
@@ -95,6 +127,11 @@ export class Source extends BaseSource {
     context,
     sourceParams,
   }: OnEventArguments): Promise<void> {
+    if (
+      context.event == "BufEnter" && (await fn.bufnr(denops) in this.buffers)
+    ) {
+      return;
+    }
     await this.makeCache(
       denops,
       context.filetype,
@@ -102,10 +139,11 @@ export class Source extends BaseSource {
     );
 
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
-    this.buffers = this.buffers.filter(async (buffer) =>
-      buffer.bufnr in tabBufnrs ||
-      (await fn.buflisted(denops, buffer.bufnr))
-    );
+    for (const bufnr of Object.keys(this.buffers)) {
+      if (!(bufnr in tabBufnrs) && !(await fn.buflisted(denops, Number(bufnr)))) {
+        delete this.buffers[bufnr];
+      }
+    }
   }
 
   async gatherCandidates({
@@ -116,16 +154,16 @@ export class Source extends BaseSource {
     const p = sourceParams as unknown as Params;
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     const altbuf = await fn.bufnr(denops, "#");
-    let buffers = this.buffers.filter((buf) =>
-      !p.requireSameFiletype ||
-      (buf.filetype == context.filetype) ||
-      tabBufnrs.includes(buf.bufnr) ||
-      (p.fromAltBuf && (altbuf == buf.bufnr))
-    );
 
-    return buffers.map((buf) => buf.candidates).flatMap((candidate) =>
-      candidate
-    );
+    await this.checkCache(denops, tabBufnrs, p.limitBytes);
+
+    return Object.keys(this.buffers).map((bufnr) => this.buffers[bufnr]).filter(
+      (buf) =>
+        !p.requireSameFiletype ||
+        (buf.filetype == context.filetype) ||
+        tabBufnrs.includes(buf.bufnr) ||
+        (p.fromAltBuf && (altbuf == buf.bufnr)),
+    ).map((buf) => buf.candidates).flatMap((candidate) => candidate);
   }
 
   params(): Record<string, unknown> {
