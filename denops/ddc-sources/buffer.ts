@@ -19,7 +19,6 @@ export async function getFileSize(fname: string): Promise<number> {
     if (e instanceof Deno.errors.NotFound) {
       return -1;
     }
-    console.error(e);
     return -1;
   }
   return file.size;
@@ -36,6 +35,7 @@ type Params = {
   requireSameFiletype: boolean;
   limitBytes: number;
   fromAltBuf: boolean;
+  forceCollect: boolean;
 };
 
 type bufCache = {
@@ -87,9 +87,14 @@ export class Source extends BaseSource {
     denops: Denops,
     bufnr: number,
     limit: number,
+    force: boolean,
   ): Promise<void> {
-    const size = await getFileSize(await fn.bufname(denops, bufnr));
-    if (size < 0 || size > limit) return;
+    console.log(force)
+    if (!force) {
+      const size = await getFileSize(await fn.bufname(denops, bufnr));
+      if (size < 0 || size > limit) return;
+    }
+    console.log(force)
 
     this.buffers[bufnr.toString()] = {
       bufnr: bufnr,
@@ -102,10 +107,11 @@ export class Source extends BaseSource {
     denops: Denops,
     tabBufnrs: number[],
     limit: number,
+    force: boolean,
   ): Promise<void> {
     for (const bufnr of tabBufnrs) {
       if (!(bufnr in this.buffers)) {
-        this.makeFileBufCache(denops, bufnr, limit);
+        this.makeFileBufCache(denops, bufnr, limit, force);
       }
     }
   }
@@ -115,6 +121,7 @@ export class Source extends BaseSource {
       denops,
       await fn.tabpagebuflist(denops) as number[],
       sourceParams.limitBytes as number,
+      sourceParams.forceCollect as boolean,
     );
     await this.makeCurrentBufCache(
       denops,
@@ -158,7 +165,7 @@ export class Source extends BaseSource {
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     const altbuf = await fn.bufnr(denops, "#");
 
-    await this.checkCache(denops, tabBufnrs, p.limitBytes);
+    await this.checkCache(denops, tabBufnrs, p.limitBytes, false);
 
     return Object.values(this.buffers).filter((buffer) =>
       !p.requireSameFiletype ||
@@ -173,6 +180,7 @@ export class Source extends BaseSource {
       requireSameFiletype: true,
       limitBytes: 1e6,
       fromAltBuf: false,
+      forceCollect: false,
     };
     return params as unknown as Record<string, unknown>;
   }

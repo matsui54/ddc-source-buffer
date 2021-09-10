@@ -60,10 +60,19 @@ limitBytes		(number)
 
 		Default: 1000000
 
-
 						   *ddc-buffer-param-fromAltBuf*
 fromAltBuf		(boolean)
 		If it is true, keywords from alternate buffer are collected. 
+
+		Default: v:false
+
+						 *ddc-buffer-param-forceCollect*
+forceCollect		(boolean)
+		If it is true, keywords from all buffers in the current
+		tabpage are collected regardless of buffer size when this
+		source is loaded. If you want to ensure that keywords are
+		always collected on initialization of ddc, enable this
+		feature.
 
 		Default: v:false
 
