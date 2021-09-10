@@ -89,12 +89,10 @@ export class Source extends BaseSource {
     limit: number,
     force: boolean,
   ): Promise<void> {
-    console.log(force)
     if (!force) {
       const size = await getFileSize(await fn.bufname(denops, bufnr));
       if (size < 0 || size > limit) return;
     }
-    console.log(force)
 
     this.buffers[bufnr.toString()] = {
       bufnr: bufnr,
