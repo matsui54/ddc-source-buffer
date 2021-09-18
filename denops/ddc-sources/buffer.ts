@@ -2,14 +2,14 @@ import {
   BaseSource,
   Candidate,
   DdcEvent,
-} from "https://deno.land/x/ddc_vim@v0.5.2/types.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.8.0/types.ts#^";
 import {
   GatherCandidatesArguments,
   OnEventArguments,
   OnInitArguments,
-} from "https://deno.land/x/ddc_vim@v0.5.2/base/source.ts#^";
-import * as fn from "https://deno.land/x/denops_std@v1.9.0/function/mod.ts#^";
-import { Denops } from "https://deno.land/x/denops_std@v1.9.0/mod.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.8.0/base/source.ts#^";
+import * as fn from "https://deno.land/x/denops_std@v1.11.2/function/mod.ts#^";
+import { Denops } from "https://deno.land/x/denops_std@v1.11.2/mod.ts#^";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -109,7 +109,7 @@ export class Source extends BaseSource {
   ): Promise<void> {
     for (const bufnr of tabBufnrs) {
       if (!(bufnr in this.buffers)) {
-        this.makeFileBufCache(denops, bufnr, limit, force);
+        await this.makeFileBufCache(denops, bufnr, limit, force);
       }
     }
   }
