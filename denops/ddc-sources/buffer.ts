@@ -2,12 +2,12 @@ import {
   BaseSource,
   Candidate,
   DdcEvent,
-} from "https://deno.land/x/ddc_vim@v0.8.0/types.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.11.0/types.ts#^";
 import {
   GatherCandidatesArguments,
   OnEventArguments,
   OnInitArguments,
-} from "https://deno.land/x/ddc_vim@v0.8.0/base/source.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.11.0/base/source.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v1.11.2/function/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v1.11.2/mod.ts#^";
 
@@ -44,7 +44,7 @@ type bufCache = {
   candidates: Candidate[];
 };
 
-export class Source extends BaseSource {
+export class Source extends BaseSource<Params> {
   private buffers: { [bufnr: string]: bufCache } = {};
   events = [
     "BufReadPost",
@@ -114,7 +114,7 @@ export class Source extends BaseSource {
     }
   }
 
-  async onInit({ denops, sourceParams }: OnInitArguments): Promise<void> {
+  async onInit({ denops, sourceParams }: OnInitArguments<Params>): Promise<void> {
     await this.checkCache(
       denops,
       await fn.tabpagebuflist(denops) as number[],
@@ -132,7 +132,7 @@ export class Source extends BaseSource {
     denops,
     context,
     sourceParams,
-  }: OnEventArguments): Promise<void> {
+  }: OnEventArguments<Params>): Promise<void> {
     if (
       context.event == "BufEnter" && (await fn.bufnr(denops) in this.buffers)
     ) {
@@ -158,7 +158,7 @@ export class Source extends BaseSource {
     denops,
     context,
     sourceParams,
-  }: GatherCandidatesArguments): Promise<Candidate[]> {
+  }: GatherCandidatesArguments<Params>): Promise<Candidate[]> {
     const p = sourceParams as unknown as Params;
     const tabBufnrs = (await denops.call("tabpagebuflist") as number[]);
     const altbuf = await fn.bufnr(denops, "#");
@@ -173,13 +173,12 @@ export class Source extends BaseSource {
     ).map((buf) => buf.candidates).flatMap((candidate) => candidate);
   }
 
-  params(): Record<string, unknown> {
-    const params: Params = {
+  params(): Params {
+    return {
       requireSameFiletype: true,
       limitBytes: 1e6,
       fromAltBuf: false,
       forceCollect: false,
     };
-    return params as unknown as Record<string, unknown>;
   }
 }
