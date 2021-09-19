@@ -114,7 +114,9 @@ export class Source extends BaseSource<Params> {
     }
   }
 
-  async onInit({ denops, sourceParams }: OnInitArguments<Params>): Promise<void> {
+  async onInit(
+    { denops, sourceParams }: OnInitArguments<Params>,
+  ): Promise<void> {
     await this.checkCache(
       denops,
       await fn.tabpagebuflist(denops) as number[],
