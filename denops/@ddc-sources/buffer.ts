@@ -36,12 +36,14 @@ type Params = {
   limitBytes: number;
   fromAltBuf: boolean;
   forceCollect: boolean;
+  showBufName: boolean;
 };
 
 type bufCache = {
   bufnr: number;
   filetype: string;
   candidates: Candidate[];
+  bufname: string;
 };
 
 export class Source extends BaseSource<Params> {
@@ -80,6 +82,7 @@ export class Source extends BaseSource<Params> {
       bufnr: bufnr,
       filetype: filetype,
       candidates: await this.gatherWords(denops, bufnr),
+      bufname: await fn.bufname(denops, bufnr),
     };
   }
 
@@ -89,8 +92,9 @@ export class Source extends BaseSource<Params> {
     limit: number,
     force: boolean,
   ): Promise<void> {
+    const bufname = await fn.bufname(denops, bufnr);
     if (!force) {
-      const size = await getFileSize(await fn.bufname(denops, bufnr));
+      const size = await getFileSize(bufname);
       if (size < 0 || size > limit) return;
     }
 
@@ -98,6 +102,7 @@ export class Source extends BaseSource<Params> {
       bufnr: bufnr,
       filetype: await fn.getbufvar(denops, bufnr, "&filetype") as string,
       candidates: await this.gatherWords(denops, bufnr),
+      bufname: bufname,
     };
   }
 
@@ -172,7 +177,15 @@ export class Source extends BaseSource<Params> {
       (buffer.filetype == context.filetype) ||
       tabBufnrs.includes(buffer.bufnr) ||
       (p.fromAltBuf && (altbuf == buffer.bufnr))
-    ).map((buf) => buf.candidates).flatMap((candidate) => candidate);
+    ).map((buf) => {
+      if (p.showBufName) {
+        return buf.candidates.map((b) => ({
+          word: b.word,
+          menu: buf.bufname,
+        }));
+      }
+      return buf.candidates;
+    }).flatMap((candidate) => candidate);
   }
 
   params(): Params {
@@ -181,6 +194,7 @@ export class Source extends BaseSource<Params> {
       limitBytes: 1e6,
       fromAltBuf: false,
       forceCollect: false,
+      showBufName: false,
     };
   }
 }
