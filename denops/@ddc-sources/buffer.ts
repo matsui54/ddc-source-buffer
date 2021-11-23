@@ -2,12 +2,12 @@ import {
   BaseSource,
   Candidate,
   DdcEvent,
-} from "https://deno.land/x/ddc_vim@v0.17.0/types.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.18.0/types.ts#^";
 import {
   GatherCandidatesArguments,
   OnEventArguments,
   OnInitArguments,
-} from "https://deno.land/x/ddc_vim@v0.17.0/base/source.ts#^";
+} from "https://deno.land/x/ddc_vim@v0.18.0/base/source.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v1.11.3/function/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v1.11.3/mod.ts#^";
 
