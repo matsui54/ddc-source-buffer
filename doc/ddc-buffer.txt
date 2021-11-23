@@ -60,12 +60,6 @@ limitBytes		(number)
 
 		Default: 1000000
 
-						   *ddc-buffer-param-fromAltBuf*
-fromAltBuf		(boolean)
-		If it is true, keywords from alternate buffer are collected. 
-
-		Default: v:false
-
 						 *ddc-buffer-param-forceCollect*
 forceCollect		(boolean)
 		If it is true, keywords from all buffers in the current
