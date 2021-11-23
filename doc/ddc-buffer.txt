@@ -76,8 +76,8 @@ forceCollect		(boolean)
 
 		Default: v:false
 
-						   *ddc-buffer-param-fromAltBuf*
-fromAltBuf		(boolean)
+						   *ddc-buffer-param-showBufName*
+showBufName		(boolean)
 		If it is true, buffer name from which the word is collected is
 		shown in menu.
 
