@@ -49,7 +49,7 @@ type bufCache = {
 export class Source extends BaseSource<Params> {
   private buffers: { [bufnr: string]: bufCache } = {};
   events = [
-    "BufReadPost",
+    "BufWinEnter",
     "BufWritePost",
     "InsertLeave",
     "BufEnter",
