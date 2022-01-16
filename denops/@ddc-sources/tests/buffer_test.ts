@@ -10,12 +10,21 @@ Deno.test("getFileSize", async () => {
 });
 
 Deno.test("allWords", () => {
-  assertEquals(allWords([]), []);
-  assertEquals(allWords(["_w2er"]), ["_w2er"]);
-  assertEquals(allWords(["asdf _w2er", "223r wawer"]), [
+  let pattern = "\\w+";
+  assertEquals(allWords([], pattern), []);
+  assertEquals(allWords(["_w2er"], pattern), ["_w2er"]);
+  assertEquals(allWords(["asdf _w2er", "223r wawer"], pattern), [
     "asdf",
     "_w2er",
     "223r",
     "wawer",
   ]);
+  pattern = "[-\\w]+";
+  assertEquals(
+    allWords(
+      ["ab-cd ab--cd", "-abcd --abcd", "abcd-- abcd-", "-ab-cd-"],
+      pattern,
+    ),
+    ["ab-cd", "ab--cd", "-abcd", "--abcd", "abcd--", "abcd-", "-ab-cd-"],
+  );
 });

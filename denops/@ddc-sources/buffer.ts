@@ -8,7 +8,9 @@ import {
   OnEventArguments,
   OnInitArguments,
 } from "https://deno.land/x/ddc_vim@v1.2.0/base/source.ts#^";
+import { vimoption2ts } from "https://deno.land/x/ddc_vim@v1.2.0/util.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v2.4.0/function/mod.ts#^";
+import * as op from "https://deno.land/x/denops_std@v2.4.0/option/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v2.4.0/mod.ts#^";
 
 export async function getFileSize(fname: string): Promise<number> {
@@ -24,10 +26,11 @@ export async function getFileSize(fname: string): Promise<number> {
   return file.size;
 }
 
-export function allWords(lines: string[]): string[] {
+export function allWords(lines: string[], pattern: string): string[] {
   const words = lines
-    .flatMap((line) => [...line.matchAll(/[_\p{L}\d]+/gu)])
-    .map((match) => match[0]);
+    .flatMap((line) => [...line.matchAll(new RegExp(pattern, "gu"))])
+    .map((match) => match[0])
+    .filter((word) => word.length > 0);
   return Array.from(new Set(words)); // remove duplication
 }
 
@@ -59,7 +62,9 @@ export class Source extends BaseSource<Params> {
     denops: Denops,
     bufnr: number,
   ): Promise<Candidate[]> {
-    return allWords(await fn.getbufline(denops, bufnr, 1, "$"))
+    const iskeyword = await op.iskeyword.getLocal(denops);
+    const pattern = "[" + vimoption2ts(iskeyword) + "]*";
+    return allWords(await fn.getbufline(denops, bufnr, 1, "$"), pattern)
       .map((word) => ({ word }));
   }
 
