@@ -10,7 +10,6 @@ import {
 } from "https://deno.land/x/ddc_vim@v1.2.0/base/source.ts#^";
 import { vimoption2ts } from "https://deno.land/x/ddc_vim@v1.2.0/util.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v2.4.0/function/mod.ts#^";
-import * as op from "https://deno.land/x/denops_std@v2.4.0/option/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v2.4.0/mod.ts#^";
 
 export async function getFileSize(fname: string): Promise<number> {
@@ -62,7 +61,7 @@ export class Source extends BaseSource<Params> {
     denops: Denops,
     bufnr: number,
   ): Promise<Candidate[]> {
-    const iskeyword = await op.iskeyword.getLocal(denops);
+    const iskeyword = await fn.getbufvar(denops, bufnr, "&iskeyword") as string
     const pattern = "[" + vimoption2ts(iskeyword) + "]*";
     return allWords(await fn.getbufline(denops, bufnr, 1, "$"), pattern)
       .map((word) => ({ word }));
