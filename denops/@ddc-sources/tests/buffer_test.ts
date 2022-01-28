@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.115.1/testing/asserts.ts#^";
+} from "https://deno.land/std@0.121.0/testing/asserts.ts#^";
 import { allWords, getFileSize } from "../buffer.ts";
 
 Deno.test("getFileSize", async () => {
@@ -10,9 +10,10 @@ Deno.test("getFileSize", async () => {
 });
 
 Deno.test("allWords", () => {
-  assertEquals(allWords([]), []);
-  assertEquals(allWords(["_w2er"]), ["_w2er"]);
-  assertEquals(allWords(["asdf _w2er", "223r wawer"]), [
+  const pattern = "\\w+";
+  assertEquals(allWords([], pattern), []);
+  assertEquals(allWords(["_w2er"], pattern), ["_w2er"]);
+  assertEquals(allWords(["asdf _w2er", "223r wawer"], pattern), [
     "asdf",
     "_w2er",
     "223r",
