@@ -125,7 +125,7 @@ export class Source extends BaseSource<Params> {
 
     for (const bufnr of Object.keys(this.buffers)) {
       if (
-        !(bufnr in tabBufnrs) &&
+        !(tabBufnrs.includes(Number(bufnr))) &&
         !(await fn.buflisted(denops, Number(bufnr)))
       ) {
         delete this.buffers[bufnr];
