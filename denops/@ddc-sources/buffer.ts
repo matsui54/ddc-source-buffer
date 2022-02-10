@@ -9,6 +9,7 @@ import {
 } from "https://deno.land/x/ddc_vim@v1.2.0/base/source.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v2.4.0/function/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v2.4.0/mod.ts#^";
+import { basename } from "https://deno.land/std@0.125.0/path/mod.ts#^";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -37,6 +38,7 @@ type Params = {
   fromAltBuf: boolean;
   forceCollect: boolean;
   showBufName: boolean;
+  bufNameStyle: "none" | "full" | "basename";
 };
 
 type bufCache = {
@@ -167,6 +169,10 @@ export class Source extends BaseSource<Params> {
     sourceParams,
   }: GatherCandidatesArguments<Params>): Promise<Candidate[]> {
     const p = sourceParams as unknown as Params;
+    if (p.showBufName) {
+      // for compatibility
+      p.bufNameStyle = "full";
+    }
     const tabBufnrs = (await fn.tabpagebuflist(denops) as number[]);
     const altbuf = await fn.bufnr(denops, "#");
 
@@ -176,10 +182,15 @@ export class Source extends BaseSource<Params> {
       tabBufnrs.includes(buffer.bufnr) ||
       (p.fromAltBuf && (altbuf == buffer.bufnr))
     ).map((buf) => {
-      if (p.showBufName) {
+      const menu = (p.bufNameStyle == "full")
+        ? buf.bufname
+        : (p.bufNameStyle == "basename")
+        ? basename(buf.bufname)
+        : "";
+      if (menu) {
         return buf.candidates.map((b) => ({
           word: b.word,
-          menu: buf.bufname,
+          menu: menu,
         }));
       }
       return buf.candidates;
@@ -193,6 +204,7 @@ export class Source extends BaseSource<Params> {
       fromAltBuf: false,
       forceCollect: false,
       showBufName: false,
+      bufNameStyle: "none",
     };
   }
 }

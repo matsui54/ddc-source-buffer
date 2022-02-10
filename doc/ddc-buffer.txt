@@ -78,6 +78,9 @@ forceCollect		(boolean)
 
 						   *ddc-buffer-param-showBufName*
 showBufName		(boolean)
+		**DEPRECATED**
+		Please use |ddc-buffer-param-bufNameStyle| instead.
+
 		If it is true, buffer name from which the word is collected is
 		shown in menu.
 		If the buffer name is too long, you can truncate it using
@@ -94,5 +97,18 @@ showBufName		(boolean)
 	      \ })
 <
 		Default: v:false
+
+					   *ddc-buffer-param-bufNameStyle*
+bufNameStyle		(string)
+		Style of the buffer name style shown in menu.
+		The following items are available.
+
+		"none": empty string
+		"full": full buffer name
+		"basename": only basename of the file. 
+			ex: /home/user/test.ts => /test.ts
+
+		Default: none
+
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:
