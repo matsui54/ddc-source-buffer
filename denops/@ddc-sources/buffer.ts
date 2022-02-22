@@ -1,15 +1,15 @@
 import {
   BaseSource,
-  Candidate,
+  Item,
   DdcEvent,
-} from "https://deno.land/x/ddc_vim@v1.2.0/types.ts#^";
+} from "https://deno.land/x/ddc_vim@v2.0.0/types.ts#^";
 import {
-  GatherCandidatesArguments,
+  GatherArguments,
   OnEventArguments,
-} from "https://deno.land/x/ddc_vim@v1.2.0/base/source.ts#^";
+} from "https://deno.land/x/ddc_vim@v2.0.0/base/source.ts#^";
 import * as fn from "https://deno.land/x/denops_std@v2.4.0/function/mod.ts#^";
 import { Denops } from "https://deno.land/x/denops_std@v2.4.0/mod.ts#^";
-import { basename } from "https://deno.land/std@0.125.0/path/mod.ts#^";
+import { basename } from "https://deno.land/std@0.126.0/path/mod.ts#^";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -44,7 +44,7 @@ type Params = {
 type bufCache = {
   bufnr: number;
   filetype: string;
-  candidates: Candidate[];
+  candidates: Item[];
   bufname: string;
 };
 
@@ -61,7 +61,7 @@ export class Source extends BaseSource<Params> {
     denops: Denops,
     bufnr: number,
     pattern: string,
-  ): Promise<Candidate[]> {
+  ): Promise<Item[]> {
     return allWords(await fn.getbufline(denops, bufnr, 1, "$"), pattern)
       .map((word) => ({ word }));
   }
@@ -163,11 +163,11 @@ export class Source extends BaseSource<Params> {
     );
   }
 
-  async gatherCandidates({
+  async gather({
     denops,
     context,
     sourceParams,
-  }: GatherCandidatesArguments<Params>): Promise<Candidate[]> {
+  }: GatherArguments<Params>): Promise<Item[]> {
     const p = sourceParams as unknown as Params;
     if (p.showBufName) {
       // for compatibility
