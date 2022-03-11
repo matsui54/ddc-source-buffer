@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.128.0/testing/asserts.ts";
+} from "https://deno.land/std@0.129.0/testing/asserts.ts";
 import { allWords, getFileSize } from "../buffer.ts";
 
 Deno.test("getFileSize", async () => {
