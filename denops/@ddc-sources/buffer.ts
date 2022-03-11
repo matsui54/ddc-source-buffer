@@ -9,7 +9,7 @@ import {
 } from "https://deno.land/x/ddc_vim@v2.2.0/base/source.ts";
 import * as fn from "https://deno.land/x/denops_std@v3.1.4/function/mod.ts";
 import { Denops } from "https://deno.land/x/denops_std@v3.1.4/mod.ts";
-import { basename } from "https://deno.land/std@0.128.0/path/mod.ts";
+import { basename } from "https://deno.land/std@0.129.0/path/mod.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
