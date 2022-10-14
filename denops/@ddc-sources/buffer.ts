@@ -3,12 +3,12 @@ import {
   DdcEvent,
   Item,
 } from "https://deno.land/x/ddc_vim@v2.5.1/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddc_vim@v2.5.1/deps.ts";
+import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v2.5.1/deps.ts";
 import {
   GatherArguments,
   OnEventArguments,
 } from "https://deno.land/x/ddc_vim@v2.5.1/base/source.ts";
-import { basename } from "https://deno.land/std@0.155.0/path/mod.ts";
+import { basename } from "https://deno.land/std@0.159.0/path/mod.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -45,6 +45,7 @@ type bufCache = {
   filetype: string;
   candidates: Item[];
   bufname: string;
+  changed: number;
 };
 
 export class Source extends BaseSource<Params> {
@@ -52,6 +53,7 @@ export class Source extends BaseSource<Params> {
   events = [
     "BufWinEnter",
     "BufWritePost",
+    "InsertEnter",
     "InsertLeave",
     "BufEnter",
   ] as DdcEvent[];
@@ -86,6 +88,7 @@ export class Source extends BaseSource<Params> {
       filetype: filetype,
       candidates: await this.gatherWords(denops, bufnr, pattern),
       bufname: await fn.bufname(denops, bufnr),
+      changed: await vars.b.get(denops, "changedtick", 0),
     };
   }
 
@@ -107,6 +110,7 @@ export class Source extends BaseSource<Params> {
       filetype: await fn.getbufvar(denops, bufnr, "&filetype") as string,
       candidates: await this.gatherWords(denops, bufnr, pattern),
       bufname: bufname,
+      changed: await vars.b.get(denops, "changedtick", 0),
     };
   }
 
@@ -119,7 +123,11 @@ export class Source extends BaseSource<Params> {
     const tabBufnrs = (await fn.tabpagebuflist(denops) as number[]);
 
     for (const bufnr of tabBufnrs) {
-      if (!(bufnr in this.buffers)) {
+      if (
+        !(bufnr in this.buffers) ||
+        (await fn.getbufvar(denops, "changedtick", 0)) !=
+          this.buffers[bufnr].changed
+      ) {
         await this.makeFileBufCache(denops, bufnr, pattern, limit, force);
       }
     }
@@ -158,7 +166,7 @@ export class Source extends BaseSource<Params> {
       denops,
       options.keywordPattern,
       sourceParams.limitBytes,
-      false,
+      sourceParams.forceCollect,
     );
   }
 
