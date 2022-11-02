@@ -2,13 +2,13 @@ import {
   BaseSource,
   DdcEvent,
   Item,
-} from "https://deno.land/x/ddc_vim@v2.5.1/types.ts";
-import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v2.5.1/deps.ts";
+} from "https://deno.land/x/ddc_vim@v3.1.0/types.ts";
+import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v3.1.0/deps.ts";
 import {
   GatherArguments,
   OnEventArguments,
-} from "https://deno.land/x/ddc_vim@v2.5.1/base/source.ts";
-import { basename } from "https://deno.land/std@0.159.0/path/mod.ts";
+} from "https://deno.land/x/ddc_vim@v3.1.0/base/source.ts";
+import { basename } from "https://deno.land/std@0.161.0/path/mod.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
