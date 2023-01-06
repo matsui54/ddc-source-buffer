@@ -8,7 +8,7 @@ import {
   GatherArguments,
   OnEventArguments,
 } from "https://deno.land/x/ddc_vim@v3.4.0/base/source.ts";
-import { basename } from "https://deno.land/std@0.170.0/path/mod.ts";
+import { basename } from "https://deno.land/std@0.171.0/path/mod.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -120,7 +120,7 @@ export class Source extends BaseSource<Params> {
     limit: number,
     force: boolean,
   ): Promise<void> {
-    const tabBufnrs = (await fn.tabpagebuflist(denops) as number[]);
+    const tabBufnrs = await fn.tabpagebuflist(denops) as number[];
 
     for (const bufnr of tabBufnrs) {
       if (
@@ -180,7 +180,7 @@ export class Source extends BaseSource<Params> {
       // for compatibility
       p.bufNameStyle = "full";
     }
-    const tabBufnrs = (await fn.tabpagebuflist(denops) as number[]);
+    const tabBufnrs = await fn.tabpagebuflist(denops) as number[];
     const altbuf = await fn.bufnr(denops, "#");
 
     return Object.values(this.buffers).filter((buffer) =>
