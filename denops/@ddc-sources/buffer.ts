@@ -2,13 +2,14 @@ import {
   BaseSource,
   DdcEvent,
   Item,
-} from "https://deno.land/x/ddc_vim@v3.4.0/types.ts";
-import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v3.4.0/deps.ts";
+} from "https://deno.land/x/ddc_vim@v3.7.1/types.ts";
+import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v3.7.1/deps.ts";
+import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v3.7.1/utils.ts";
 import {
   GatherArguments,
   OnEventArguments,
-} from "https://deno.land/x/ddc_vim@v3.4.0/base/source.ts";
-import { basename } from "https://deno.land/std@0.187.0/path/mod.ts";
+} from "https://deno.land/x/ddc_vim@v3.7.1/base/source.ts";
+import { basename } from "https://deno.land/std@0.192.0/path/mod.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -120,12 +121,12 @@ export class Source extends BaseSource<Params> {
     limit: number,
     force: boolean,
   ): Promise<void> {
-    const tabBufnrs = (await fn.tabpagebuflist(denops) as number[]);
+    const tabBufnrs = await fn.tabpagebuflist(denops) as number[];
 
     for (const bufnr of tabBufnrs) {
       if (
         !(bufnr in this.buffers) ||
-        (await fn.getbufvar(denops, "changedtick", 0)) !=
+        (await fn.getbufvar(denops, bufnr, "changedtick", 0)) !=
           this.buffers[bufnr].changed
       ) {
         await this.makeFileBufCache(denops, bufnr, pattern, limit, force);
@@ -145,7 +146,7 @@ export class Source extends BaseSource<Params> {
   async onEvent({
     denops,
     context,
-    options,
+    sourceOptions,
     sourceParams,
   }: OnEventArguments<Params>): Promise<void> {
     if (
@@ -155,16 +156,21 @@ export class Source extends BaseSource<Params> {
       return;
     }
 
+    const keywordPattern = await convertKeywordPattern(
+      denops,
+      sourceOptions.keywordPattern,
+    );
+
     await this.makeCurrentBufCache(
       denops,
       context.filetype,
-      options.keywordPattern,
+      keywordPattern,
       sourceParams.limitBytes as number,
     );
 
     await this.checkCache(
       denops,
-      options.keywordPattern,
+      keywordPattern,
       sourceParams.limitBytes,
       sourceParams.forceCollect,
     );
@@ -180,7 +186,7 @@ export class Source extends BaseSource<Params> {
       // for compatibility
       p.bufNameStyle = "full";
     }
-    const tabBufnrs = (await fn.tabpagebuflist(denops) as number[]);
+    const tabBufnrs = await fn.tabpagebuflist(denops) as number[];
     const altbuf = await fn.bufnr(denops, "#");
 
     return Object.values(this.buffers).filter((buffer) =>
