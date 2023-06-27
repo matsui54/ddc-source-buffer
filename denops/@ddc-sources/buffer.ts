@@ -4,7 +4,7 @@ import {
   Item,
 } from "https://deno.land/x/ddc_vim@v3.7.1/types.ts";
 import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v3.7.1/deps.ts";
-import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v3.7.1/utils.ts";
+import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v3.7.1/util.ts";
 import {
   GatherArguments,
   OnEventArguments,
