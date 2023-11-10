@@ -2,14 +2,14 @@ import {
   BaseSource,
   DdcEvent,
   Item,
-} from "https://deno.land/x/ddc_vim@v3.7.1/types.ts";
-import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v3.7.1/deps.ts";
-import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v3.7.1/util.ts";
+} from "https://deno.land/x/ddc_vim@v4.1.0/types.ts";
+import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v4.1.0/deps.ts";
 import {
   GatherArguments,
   OnEventArguments,
-} from "https://deno.land/x/ddc_vim@v3.7.1/base/source.ts";
-import { basename } from "https://deno.land/std@0.192.0/path/mod.ts";
+} from "https://deno.land/x/ddc_vim@v4.1.0/base/source.ts";
+import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v4.0.5/util.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -124,10 +124,9 @@ export class Source extends BaseSource<Params> {
     const tabBufnrs = await fn.tabpagebuflist(denops) as number[];
 
     for (const bufnr of tabBufnrs) {
+      const changedtick = await fn.getbufvar(denops, bufnr, "changedtick", 0);
       if (
-        !(bufnr in this.buffers) ||
-        (await fn.getbufvar(denops, bufnr, "changedtick", 0)) !=
-          this.buffers[bufnr].changed
+        !(bufnr in this.buffers) || changedtick != this.buffers[bufnr].changed
       ) {
         await this.makeFileBufCache(denops, bufnr, pattern, limit, force);
       }
