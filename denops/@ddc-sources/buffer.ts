@@ -2,14 +2,14 @@ import {
   BaseSource,
   DdcEvent,
   Item,
-} from "https://deno.land/x/ddc_vim@v4.1.0/types.ts";
-import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v4.1.0/deps.ts";
+} from "https://deno.land/x/ddc_vim@v4.3.1/types.ts";
+import { Denops, fn, vars } from "https://deno.land/x/ddc_vim@v4.3.1/deps.ts";
+import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v4.3.1/utils.ts";
 import {
   GatherArguments,
   OnEventArguments,
-} from "https://deno.land/x/ddc_vim@v4.1.0/base/source.ts";
-import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { convertKeywordPattern } from "https://deno.land/x/ddc_vim@v4.0.5/util.ts";
+} from "https://deno.land/x/ddc_vim@v4.3.1/base/source.ts";
+import { basename } from "https://deno.land/std@0.210.0/path/mod.ts";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -50,7 +50,7 @@ type bufCache = {
 };
 
 export class Source extends BaseSource<Params> {
-  private buffers: { [bufnr: string]: bufCache } = {};
+  #buffers: { [bufnr: string]: bufCache } = {};
   events = [
     "BufWinEnter",
     "BufWritePost",
@@ -59,7 +59,7 @@ export class Source extends BaseSource<Params> {
     "BufEnter",
   ] as DdcEvent[];
 
-  private async gatherWords(
+  async #gatherWords(
     denops: Denops,
     bufnr: number,
     pattern: string,
@@ -68,7 +68,7 @@ export class Source extends BaseSource<Params> {
       .map((word) => ({ word }));
   }
 
-  private async makeCurrentBufCache(
+  async #makeCurrentBufCache(
     denops: Denops,
     filetype: string,
     pattern: string,
@@ -84,16 +84,16 @@ export class Source extends BaseSource<Params> {
     }
     const bufnr = await fn.bufnr(denops);
 
-    this.buffers[bufnr.toString()] = {
+    this.#buffers[bufnr.toString()] = {
       bufnr: bufnr,
       filetype: filetype,
-      candidates: await this.gatherWords(denops, bufnr, pattern),
+      candidates: await this.#gatherWords(denops, bufnr, pattern),
       bufname: await fn.bufname(denops, bufnr),
       changed: await vars.b.get(denops, "changedtick", 0),
     };
   }
 
-  private async makeFileBufCache(
+  async #makeFileBufCache(
     denops: Denops,
     bufnr: number,
     pattern: string,
@@ -106,16 +106,16 @@ export class Source extends BaseSource<Params> {
       if (size < 0 || size > limit) return;
     }
 
-    this.buffers[bufnr.toString()] = {
+    this.#buffers[bufnr.toString()] = {
       bufnr: bufnr,
       filetype: await fn.getbufvar(denops, bufnr, "&filetype") as string,
-      candidates: await this.gatherWords(denops, bufnr, pattern),
+      candidates: await this.#gatherWords(denops, bufnr, pattern),
       bufname: bufname,
       changed: await vars.b.get(denops, "changedtick", 0),
     };
   }
 
-  private async checkCache(
+  async #checkCache(
     denops: Denops,
     pattern: string,
     limit: number,
@@ -126,18 +126,18 @@ export class Source extends BaseSource<Params> {
     for (const bufnr of tabBufnrs) {
       const changedtick = await fn.getbufvar(denops, bufnr, "changedtick", 0);
       if (
-        !(bufnr in this.buffers) || changedtick != this.buffers[bufnr].changed
+        !(bufnr in this.#buffers) || changedtick != this.#buffers[bufnr].changed
       ) {
-        await this.makeFileBufCache(denops, bufnr, pattern, limit, force);
+        await this.#makeFileBufCache(denops, bufnr, pattern, limit, force);
       }
     }
 
-    for (const bufnr of Object.keys(this.buffers)) {
+    for (const bufnr of Object.keys(this.#buffers)) {
       if (
         !(tabBufnrs.includes(Number(bufnr))) &&
         !(await fn.buflisted(denops, Number(bufnr)))
       ) {
-        delete this.buffers[bufnr];
+        delete this.#buffers[bufnr];
       }
     }
   }
@@ -150,7 +150,7 @@ export class Source extends BaseSource<Params> {
   }: OnEventArguments<Params>): Promise<void> {
     if (
       context.event == "BufEnter" &&
-      (await fn.bufnr(denops) in this.buffers)
+      (await fn.bufnr(denops) in this.#buffers)
     ) {
       return;
     }
@@ -160,14 +160,14 @@ export class Source extends BaseSource<Params> {
       sourceOptions.keywordPattern,
     );
 
-    await this.makeCurrentBufCache(
+    await this.#makeCurrentBufCache(
       denops,
       context.filetype,
       keywordPattern,
       sourceParams.limitBytes as number,
     );
 
-    await this.checkCache(
+    await this.#checkCache(
       denops,
       keywordPattern,
       sourceParams.limitBytes,
@@ -188,7 +188,7 @@ export class Source extends BaseSource<Params> {
     const tabBufnrs = await fn.tabpagebuflist(denops) as number[];
     const altbuf = await fn.bufnr(denops, "#");
 
-    return Object.values(this.buffers).filter((buffer) =>
+    return Object.values(this.#buffers).filter((buffer) =>
       !p.requireSameFiletype ||
       (buffer.filetype == context.filetype) ||
       tabBufnrs.includes(buffer.bufnr) ||
