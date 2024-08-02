@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.210.0/assert/mod.ts";
+} from "jsr:@std/assert@1.0.0";
 import { allWords, getFileSize } from "../buffer.ts";
 
 Deno.test("getFileSize", async () => {
