@@ -1,19 +1,16 @@
+import { type DdcEvent, type Item } from "jsr:@shougo/ddc-vim@7.0.0/types";
 import {
   BaseSource,
-  type DdcEvent,
-  type Item,
-} from "jsr:@shougo/ddc-vim@6.0.0/types";
-import {
   type GatherArguments,
   type OnEventArguments,
-} from "jsr:@shougo/ddc-vim@6.0.0/source";
-import { convertKeywordPattern } from "jsr:@shougo/ddc-vim@6.0.0/utils";
+} from "jsr:@shougo/ddc-vim@7.0.0/source";
+import { convertKeywordPattern } from "jsr:@shougo/ddc-vim@7.0.0/utils";
 
 import type { Denops } from "jsr:@denops/core@^7.0.0";
-import * as fn from "jsr:@denops/std@7.0.1/function";
-import * as vars from "jsr:@denops/std@7.0.1/variable";
+import * as fn from "jsr:@denops/std@7.1.1/function";
+import * as vars from "jsr:@denops/std@7.1.1/variable";
 
-import { basename } from "jsr:@std/path@1.0.2";
+import { basename } from "jsr:@std/path@1.0.6";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
@@ -55,7 +52,7 @@ type bufCache = {
 
 export class Source extends BaseSource<Params> {
   #buffers: { [bufnr: string]: bufCache } = {};
-  events = [
+  override events = [
     "BufWinEnter",
     "BufWritePost",
     "InsertEnter",
@@ -146,7 +143,7 @@ export class Source extends BaseSource<Params> {
     }
   }
 
-  async onEvent({
+  override async onEvent({
     denops,
     context,
     sourceOptions,
@@ -179,7 +176,7 @@ export class Source extends BaseSource<Params> {
     );
   }
 
-  async gather({
+  override async gather({
     denops,
     context,
     sourceParams,
@@ -213,7 +210,7 @@ export class Source extends BaseSource<Params> {
     }).flatMap((candidate) => candidate);
   }
 
-  params(): Params {
+  override params(): Params {
     return {
       requireSameFiletype: true,
       limitBytes: 1e6,
