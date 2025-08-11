@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.5";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { allWords, getFileSize } from "../buffer.ts";
 
 Deno.test("getFileSize", async () => {

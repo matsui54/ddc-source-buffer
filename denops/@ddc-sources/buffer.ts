@@ -1,16 +1,16 @@
-import { type DdcEvent, type Item } from "jsr:@shougo/ddc-vim@7.0.0/types";
+import { type DdcEvent, type Item } from "jsr:@shougo/ddc-vim@9.5.0/types";
 import {
   BaseSource,
   type GatherArguments,
   type OnEventArguments,
-} from "jsr:@shougo/ddc-vim@7.0.0/source";
-import { convertKeywordPattern } from "jsr:@shougo/ddc-vim@7.0.0/utils";
+} from "jsr:@shougo/ddc-vim@9.5.0/source";
+import { convertKeywordPattern } from "jsr:@shougo/ddc-vim@9.5.0/utils";
 
 import type { Denops } from "jsr:@denops/core@^7.0.0";
-import * as fn from "jsr:@denops/std@7.1.1/function";
-import * as vars from "jsr:@denops/std@7.1.1/variable";
+import * as fn from "jsr:@denops/std@7.6.0/function";
+import * as vars from "jsr:@denops/std@7.6.0/variable";
 
-import { basename } from "jsr:@std/path@1.0.6";
+import { basename } from "jsr:@std/path@1.1.1";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
