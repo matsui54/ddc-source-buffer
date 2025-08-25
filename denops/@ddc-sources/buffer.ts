@@ -10,7 +10,7 @@ import type { Denops } from "jsr:@denops/core@^8.0.0";
 import * as fn from "jsr:@denops/std@8.0.0/function";
 import * as vars from "jsr:@denops/std@8.0.0/variable";
 
-import { basename } from "jsr:@std/path@1.1.1";
+import { basename } from "jsr:@std/path@1.1.2";
 
 export async function getFileSize(fname: string): Promise<number> {
   let file: Deno.FileInfo;
