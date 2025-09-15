@@ -1,10 +1,10 @@
-import { type DdcEvent, type Item } from "jsr:@shougo/ddc-vim@10.0.0/types";
+import { type DdcEvent, type Item } from "jsr:@shougo/ddc-vim@10.1.0/types";
 import {
   BaseSource,
   type GatherArguments,
   type OnEventArguments,
-} from "jsr:@shougo/ddc-vim@10.0.0/source";
-import { convertKeywordPattern } from "jsr:@shougo/ddc-vim@10.0.0/utils";
+} from "jsr:@shougo/ddc-vim@10.1.0/source";
+import { convertKeywordPattern } from "jsr:@shougo/ddc-vim@10.1.0/utils";
 
 import type { Denops } from "jsr:@denops/core@^8.0.0";
 import * as fn from "jsr:@denops/std@8.0.0/function";
